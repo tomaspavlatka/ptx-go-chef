@@ -16,8 +16,10 @@ type Contract struct {
 	InterestRate       InterestRate
 	Status             string
 	Version            int
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	ReviewedBy         string
+	ReviewedAt         *time.Time
+	CreatedAt          *time.Time
+	UpdatedAt          *time.Time
 }
 
 type InterestRate struct {

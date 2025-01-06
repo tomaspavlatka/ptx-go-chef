@@ -5,14 +5,19 @@ import (
 	"time"
 )
 
-func ToDateWithAge(t time.Time) string {
+func ToDateWithAge(t *time.Time) string {
+  if (t == nil) {
+    return "---";
+  }
+
 	now := time.Now()
-	sub := now.Sub(t)
+	sub := now.Sub(*t)
 
 	days := int(sub.Hours() / 24)
 	hours := int(int(sub.Hours()) - days*24)
 
-	return t.Format("02.01. 15:04") + fmt.Sprintf(" ~ %d days,%d hours", days, hours)
+  return t.Format("02.01. 15:04") + fmt.Sprintf(" ~ %d days %d hours", days, hours)
+
 }
 
 func ToDuration(months int) string {
