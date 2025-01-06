@@ -14,6 +14,8 @@ func ToContract(c easypay.Contract) {
 	fmt.Println("- Duration     :", ToDuration(c.DurationMonths))
 	fmt.Println("- Monthly      :", ToMoney(c.MonthlyInstallment))
 	fmt.Println("- Interest     :", toInterestRate(c.InterestRate))
+  fmt.Println("- Access token :", c.AccessToken)
+  fmt.Println("- Expires at   :", ToDateWithAge(&c.AccessTokenExpiresAt))
 	fmt.Println("- Reviewed     :", toReviewed(c.ReviewedAt, c.ReviewedBy))
 	fmt.Println("- Created at   :", ToDateWithAge(c.CreatedAt))
 	fmt.Println("- Updated at   :", ToDateWithAge(c.UpdatedAt))
@@ -23,6 +25,7 @@ func ToContract(c easypay.Contract) {
 func toInterestRate(i easypay.InterestRate) string {
 	return fmt.Sprintf("%.02f %%", i.Metadata.Percentage)
 }
+
 
 func toReviewed(reviewedAt *time.Time, reviewedBy string) string {
 	if reviewedAt == nil {

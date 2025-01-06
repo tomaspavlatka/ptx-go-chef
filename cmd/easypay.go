@@ -12,7 +12,6 @@ var easypayCommand = &cobra.Command{
 	Long:    "Welcome to the easypay world",
 	Aliases: []string{"ep"},
 	Run: func(cmd *cobra.Command, args []string) {
-
 		fmt.Println("easypay called")
 	},
 }

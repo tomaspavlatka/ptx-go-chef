@@ -10,7 +10,7 @@ import (
 // easypayMeCmd represents the easypayMe command
 var easypayMeCmd = &cobra.Command{
 	Use:     "health",
-	Short:   "Easypay Health",
+	Short:   "Health",
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := easypay.GetHealth()
 		if err != nil {

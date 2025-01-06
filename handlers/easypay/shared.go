@@ -12,7 +12,3 @@ type Money struct {
 	CentAmount int    `json:"centAmount"`
 	Currency   string `json:"currency"`
 }
-
-func ToEur(m Money) float64 {
-	return float64(m.CentAmount) / 100.0
-}

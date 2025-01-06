@@ -38,3 +38,4 @@ func GetApplicants() (*Applicants, error) {
 
 	return &applicants, nil
 }
+
