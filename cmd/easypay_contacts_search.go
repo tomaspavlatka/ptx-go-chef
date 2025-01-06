@@ -21,6 +21,7 @@ var easypayContractSearchCmd = &cobra.Command{
 
     for _, contract := range(resp.Records) {
       decorators.ToContract(contract);
+      fmt.Println()
     }
 	},
 }

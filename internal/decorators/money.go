@@ -8,7 +8,11 @@ import (
 )
 
 func ToMoney(m easypay.Money) string {
-	money := fmt.Sprintf("%.2f", float64(m.CentAmount)/100.0)
+  return ToMoneyFromCentAmount(m.CentAmount, m.Currency)
+}
+
+func ToMoneyFromCentAmount(centAmount int, currency string) string {
+	money := fmt.Sprintf("%.2f", float64(centAmount)/100.0)
 
 	parts := strings.Split(money, ".")
 
@@ -16,10 +20,10 @@ func ToMoney(m easypay.Money) string {
 	formattedIntPart := addUnderscores(intPart)
 
   if len(parts) > 1 { 
-    return formattedIntPart + "." + parts[1] + " " + m.Currency
+    return formattedIntPart + "." + parts[1] + " " + currency
   }
 
-  return formattedIntPart + " " + m.Currency
+  return formattedIntPart + " " + currency
 }
 
 func addUnderscores(s string) string {

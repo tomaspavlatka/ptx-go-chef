@@ -15,6 +15,7 @@ type Contract struct {
 	DurationMonths       int
 	InterestRate         InterestRate
 	Status               string
+	Name                 string
 	Version              int
 	AccessToken          string
 	AccessTokenExpiresAt time.Time
@@ -22,6 +23,38 @@ type Contract struct {
 	ReviewedAt           *time.Time
 	CreatedAt            *time.Time
 	UpdatedAt            *time.Time
+}
+
+type ContractAudit struct {
+	Id                   string
+	ContractId           string
+	AuditType            string
+	MonthlyInstallment   int
+	CompanyId            string
+	Name                 string
+	Currency             string
+	ApplicantId          *string
+	Investment           int
+	DownPayment          int
+	DurationMonths       int
+	Country              string
+	InterestRate         *int
+	Status               string
+	Version              int
+	AccessToken          string
+	AccessTokenExpiresAt time.Time
+	ReviewedBy           string
+	ReviewedAt           *time.Time
+	Gate                 string
+	Seat                 string
+	Txid                 string
+	CreatedBy            string
+	CreatedAt            *time.Time
+}
+
+type ContractsAudit struct {
+	Records  []ContractAudit
+	Metadata Metadata
 }
 
 type InterestRate struct {
@@ -37,6 +70,20 @@ type InterestRateMeta struct {
 type Contracts struct {
 	Records  []Contract
 	Metadata Metadata
+}
+
+func GetContractAudits(contractId string) (*ContractsAudit, error) {
+	resp, err := easypay.Get("audits/contracts?q=eq(contractId,"+contractId+")sort(createdAt)", 200)
+	if err != nil {
+		return nil, err
+	}
+
+	var audits ContractsAudit
+	if err := json.Unmarshal(resp, &audits); err != nil {
+		return nil, err
+	}
+
+	return &audits, nil
 }
 
 func GetContract(contractId string) (*Contract, error) {
