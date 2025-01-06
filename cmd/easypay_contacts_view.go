@@ -8,7 +8,10 @@ import (
 	"github.com/tomaspavlatka/ptx-go-chef/internal/decorators"
 )
 
-var includeAudit = false
+var (
+	includeAudit bool
+	includeKins  bool
+)
 
 var easypayContractViewCmd = &cobra.Command{
 	Use:     "view [contract_id]",
@@ -16,8 +19,8 @@ var easypayContractViewCmd = &cobra.Command{
 	Args:    cobra.MinimumNArgs(1),
 	Aliases: []string{"v"},
 	Run: func(cmd *cobra.Command, args []string) {
-		contactId := args[0]
-		contract, err := easypay.GetContract(contactId)
+		contractId := args[0]
+		contract, err := easypay.GetContract(contractId)
 		if err != nil {
 			fmt.Println("ERROR:", err)
 			return
@@ -26,13 +29,23 @@ var easypayContractViewCmd = &cobra.Command{
 		decorators.ToContract(*contract)
 
 		if includeAudit {
-			audits, err := easypay.GetContractAudits(contactId)
+			audits, err := easypay.GetContractAudits(contractId)
 			if err != nil {
 				fmt.Println("ERROR:", err)
 				return
 			}
 
-			decorators.ToAudits(audits.Records)
+			decorators.ToContractAudits(audits.Records)
+		}
+
+		if includeKins {
+			kins, err := easypay.GetContractKinsAudit(contractId)
+			if err != nil {
+				fmt.Println("ERROR:", err)
+				return
+			}
+
+			decorators.ToContractKins(kins.Records)
 		}
 	},
 }
@@ -40,4 +53,5 @@ var easypayContractViewCmd = &cobra.Command{
 func init() {
 	easypayContractsCmd.AddCommand(easypayContractViewCmd)
 	easypayContractViewCmd.Flags().BoolVarP(&includeAudit, "audit", "a", false, "include audit")
+	easypayContractViewCmd.Flags().BoolVarP(&includeKins, "kins", "k", false, "include kins")
 }

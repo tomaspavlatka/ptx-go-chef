@@ -34,7 +34,26 @@ func toReviewed(reviewedAt *time.Time, reviewedBy string) string {
 	return ToDateWithAge(reviewedAt) + " ~ by " + reviewedBy
 }
 
-func ToAudits(audits []easypay.ContractAudit) {
+func ToContractKins(audits []easypay.KinAudit) {
+	fmt.Println()
+	fmt.Println("KINS")
+	fmt.Println("====")
+
+	for _, audit := range audits {
+		fmt.Println("-> T: "+audit.AuditType, "| "+ToDateWithAgeDetailed(audit.CreatedAt))
+		fmt.Println("- Txid         :", audit.Txid)
+		fmt.Println("- Gate         :", audit.Gate)
+		fmt.Println("- Seat         :", audit.Seat)
+		fmt.Println("- Created by   :", audit.CreatedBy)
+		fmt.Println("-------------- :")
+		fmt.Println("- Type         :", audit.Type)
+		fmt.Println("- Value        :", audit.Value)
+
+		fmt.Println()
+	}
+}
+
+func ToContractAudits(audits []easypay.ContractAudit) {
 	fmt.Println()
 	fmt.Println("AUDITS")
 	fmt.Println("======")
