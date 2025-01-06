@@ -2,6 +2,7 @@ package easypay
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/tomaspavlatka/ptx-go-chef/internal/easypay"
@@ -72,6 +73,14 @@ type Contracts struct {
 	Metadata Metadata
 }
 
+type ContractsOpts struct {
+	Limit     int8
+	Offset    int8
+	SortBy    string
+	CompanyId string
+	Status    string
+}
+
 func GetContractAudits(contractId string) (*ContractsAudit, error) {
 	resp, err := easypay.Get("audits/contracts?q=eq(contractId,"+contractId+")sort(createdAt)", 200)
 	if err != nil {
@@ -100,8 +109,17 @@ func GetContract(contractId string) (*Contract, error) {
 	return &contract, nil
 }
 
-func GetContracts() (*Contracts, error) {
-	resp, err := easypay.Get("contracts", 200)
+func GetContracts(ops ContractsOpts) (*Contracts, error) {
+	var query = ""
+	query += fmt.Sprintf("limit(%d,%d)sort(%s)", ops.Limit, ops.Offset, ops.SortBy)
+  if ops.CompanyId != "" {
+    query += fmt.Sprintf("eq(companyId,%s)", ops.CompanyId)
+  }
+  if ops.Status != "" {
+    query += fmt.Sprintf("eq(status,%s)", ops.Status)
+  }
+
+	resp, err := easypay.Get("contracts?q="+query, 200)
 	if err != nil {
 		return nil, err
 	}
