@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/tomaspavlatka/ptx-go-chef/internal/easypay"
+	"github.com/tomaspavlatka/ptx-go-chef/handlers/easypay"
 )
 
 // easypayMeCmd represents the easypayMe command

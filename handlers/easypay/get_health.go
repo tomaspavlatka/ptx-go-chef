@@ -2,13 +2,15 @@ package easypay
 
 import (
 	"encoding/json"
+
+	"github.com/tomaspavlatka/ptx-go-chef/internal/easypay"
 )
 
 type Health struct {
 }
 
 func GetHealth() (*Health, error) {
-	resp, err := get("health", 200)
+  resp, err := easypay.Get("health", 200)
 	if err != nil {
 		return nil, err
 	}
