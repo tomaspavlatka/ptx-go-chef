@@ -8,7 +8,7 @@ import (
 )
 
 func ToContract(c easypay.Contract) {
-  fmt.Println("ID:", c.Id, "| Status:", c.Status, "| V:", c.Version)
+  fmt.Println("ID:", c.Id, "| S:", c.Status, "| V:", c.Version)
 	fmt.Println("- Investment   :", ToMoney(c.Investment))
 	fmt.Println("- Down payment :", ToMoney(c.DownPayment))
 	fmt.Println("- Duration     :", ToDuration(c.DurationMonths))
