@@ -164,7 +164,7 @@ func translateType(t string) string {
 	case "D":
 		return "deleted"
 	default:
-		return "Unk"
+		return "unknown!"
 	}
 }
 
