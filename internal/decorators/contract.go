@@ -14,6 +14,7 @@ var (
 )
 
 func ToContract(c easypay.Contract) {
+  fmt.Println(headerStyle.Render("CONTRACT"))
 	fmt.Println(headerStyle.Render("ID:" + c.Id + ", S:" + c.Status + ", V:" + strconv.Itoa(c.Version)))
 	fmt.Println("- Name         :", c.Name)
 	fmt.Println("- Investment   :", ToMoney(c.Investment))
@@ -52,7 +53,6 @@ func ToContractKins(audits []easypay.KinAudit) {
 		fmt.Println("-------------- :")
 		fmt.Println("- Type         :", audit.Type)
 		fmt.Println("- Value        :", audit.Value)
-
 		fmt.Println()
 	}
 }
@@ -152,6 +152,7 @@ func ToContractAudits(audits []easypay.ContractAudit) {
 			reviewedAt = newReviewedAt
 			fmt.Println("- Reviewed at  :", ToDateWithAgeDetailed(reviewedAt))
 		}
+		fmt.Println()
 	}
 }
 
