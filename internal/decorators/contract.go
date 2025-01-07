@@ -2,13 +2,19 @@ package decorators
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/tomaspavlatka/ptx-go-chef/handlers/easypay"
 )
 
+var (
+	headerStyle = lipgloss.NewStyle().Bold(true)
+)
+
 func ToContract(c easypay.Contract) {
-	fmt.Println("ID:", c.Id, "| S:", c.Status, "| V:", c.Version)
+	fmt.Println(headerStyle.Render("ID:" + c.Id + ", S:" + c.Status + ", V:" + strconv.Itoa(c.Version)))
 	fmt.Println("- Name         :", c.Name)
 	fmt.Println("- Investment   :", ToMoney(c.Investment))
 	fmt.Println("- Down payment :", ToMoney(c.DownPayment))
@@ -35,12 +41,10 @@ func toReviewed(reviewedAt *time.Time, reviewedBy string) string {
 }
 
 func ToContractKins(audits []easypay.KinAudit) {
-	fmt.Println()
-	fmt.Println("KINS")
-	fmt.Println("====")
+	fmt.Println(headerStyle.Render("KINS"))
 
 	for _, audit := range audits {
-		fmt.Println("-> T: "+audit.AuditType, "| "+ToDateWithAgeDetailed(audit.CreatedAt))
+		fmt.Println(headerStyle.Render(translateType(audit.AuditType) + " at " + ToDateWithAgeDetailed(audit.CreatedAt)))
 		fmt.Println("- Txid         :", audit.Txid)
 		fmt.Println("- Gate         :", audit.Gate)
 		fmt.Println("- Seat         :", audit.Seat)
@@ -54,9 +58,7 @@ func ToContractKins(audits []easypay.KinAudit) {
 }
 
 func ToContractAudits(audits []easypay.ContractAudit) {
-	fmt.Println()
-	fmt.Println("AUDITS")
-	fmt.Println("======")
+	fmt.Println(headerStyle.Render("AUDITS"))
 
 	var (
 		status             string
@@ -75,7 +77,7 @@ func ToContractAudits(audits []easypay.ContractAudit) {
 	)
 
 	for _, audit := range audits {
-		fmt.Println("-> T: "+audit.AuditType, "| "+ToDateWithAgeDetailed(audit.CreatedAt))
+		fmt.Println(headerStyle.Render(translateType(audit.AuditType) + " at " + ToDateWithAgeDetailed(audit.CreatedAt)))
 		fmt.Println("- Txid         :", audit.Txid)
 		fmt.Println("- Gate         :", audit.Gate)
 		fmt.Println("- Seat         :", audit.Seat)
@@ -150,8 +152,19 @@ func ToContractAudits(audits []easypay.ContractAudit) {
 			reviewedAt = newReviewedAt
 			fmt.Println("- Reviewed at  :", ToDateWithAgeDetailed(reviewedAt))
 		}
+	}
+}
 
-		fmt.Println()
+func translateType(t string) string {
+	switch t {
+	case "I":
+		return "created"
+	case "U":
+		return "updated"
+	case "D":
+		return "deleted"
+	default:
+		return "Unk"
 	}
 }
 

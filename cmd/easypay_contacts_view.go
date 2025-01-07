@@ -35,6 +35,7 @@ var easypayContractViewCmd = &cobra.Command{
 				return
 			}
 
+      fmt.Println()
 			decorators.ToContractAudits(audits.Records)
 		}
 
@@ -45,6 +46,7 @@ var easypayContractViewCmd = &cobra.Command{
 				return
 			}
 
+      fmt.Println()
 			decorators.ToContractKins(kins.Records)
 		}
 	},
