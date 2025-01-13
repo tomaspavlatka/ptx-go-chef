@@ -22,6 +22,7 @@ func ToContract(c easypay.Contract) {
 	fmt.Println("- Duration     :", ToDuration(c.DurationMonths))
 	fmt.Println("- Monthly      :", ToMoney(c.MonthlyInstallment))
 	fmt.Println("- Interest     :", toInterestRate(c.NominalInterestRate))
+	fmt.Println("- Total Credit :", ToMoney(c.TotalCreditAmount))
 	fmt.Println("- Access token :", c.AccessToken)
 	fmt.Println("- Expires at   :", ToDateWithAge(&c.AccessTokenExpiresAt))
 	fmt.Println("- Reviewed     :", toReviewed(c.ReviewedAt, c.ReviewedBy))

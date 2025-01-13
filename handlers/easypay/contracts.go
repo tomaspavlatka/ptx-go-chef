@@ -15,6 +15,7 @@ type Contract struct {
 	DownPayment          Money
 	DurationMonths       int
 	NominalInterestRate  InterestRate
+	TotalCreditAmount    Money
 	Status               string
 	Name                 string
 	Version              int
