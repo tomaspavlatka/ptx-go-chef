@@ -14,7 +14,7 @@ type Contract struct {
 	Investment           Money
 	DownPayment          Money
 	DurationMonths       int
-	InterestRate         InterestRate
+	NominalInterestRate  InterestRate
 	Status               string
 	Name                 string
 	Version              int
@@ -112,12 +112,12 @@ func GetContract(contractId string) (*Contract, error) {
 func GetContracts(ops ContractsOpts) (*Contracts, error) {
 	var query = ""
 	query += fmt.Sprintf("limit(%d,%d)sort(%s)", ops.Limit, ops.Offset, ops.SortBy)
-  if ops.CompanyId != "" {
-    query += fmt.Sprintf("eq(companyId,%s)", ops.CompanyId)
-  }
-  if ops.Status != "" {
-    query += fmt.Sprintf("eq(status,%s)", ops.Status)
-  }
+	if ops.CompanyId != "" {
+		query += fmt.Sprintf("eq(companyId,%s)", ops.CompanyId)
+	}
+	if ops.Status != "" {
+		query += fmt.Sprintf("eq(status,%s)", ops.Status)
+	}
 
 	resp, err := easypay.Get("contracts?q="+query, 200)
 	if err != nil {
