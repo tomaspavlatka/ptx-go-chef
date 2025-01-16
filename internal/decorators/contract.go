@@ -5,12 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/tomaspavlatka/ptx-go-chef/handlers/easypay"
-)
-
-var (
-	headerStyle = lipgloss.NewStyle().Bold(true)
 )
 
 func ToContract(c easypay.Contract) {
@@ -40,22 +35,6 @@ func toReviewed(reviewedAt *time.Time, reviewedBy string) string {
 	}
 
 	return ToDateWithAge(reviewedAt) + " ~ by " + reviewedBy
-}
-
-func ToContractKins(audits []easypay.KinAudit) {
-	fmt.Println(headerStyle.Render("KINS"))
-
-	for _, audit := range audits {
-		fmt.Println(headerStyle.Render(translateType(audit.AuditType) + " at " + ToDateWithAgeDetailed(audit.CreatedAt)))
-		fmt.Println("- Txid         :", audit.Txid)
-		fmt.Println("- Gate         :", audit.Gate)
-		fmt.Println("- Seat         :", audit.Seat)
-		fmt.Println("- Created by   :", audit.CreatedBy)
-		fmt.Println("-------------- :")
-		fmt.Println("- Type         :", audit.Type)
-		fmt.Println("- Value        :", audit.Value)
-		fmt.Println()
-	}
 }
 
 func ToContractAudits(audits []easypay.ContractAudit) {
@@ -157,25 +136,3 @@ func ToContractAudits(audits []easypay.ContractAudit) {
 	}
 }
 
-func translateType(t string) string {
-	switch t {
-	case "I":
-		return "created"
-	case "U":
-		return "updated"
-	case "D":
-		return "deleted"
-	default:
-		return "unknown!"
-	}
-}
-
-func gotChanged[T comparable](currentValue T, newValue *T) (T, bool) {
-	if newValue == nil {
-		return currentValue, false
-	}
-
-	changed := currentValue != *newValue
-
-	return *newValue, changed
-}

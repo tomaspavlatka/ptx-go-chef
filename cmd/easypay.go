@@ -16,6 +16,11 @@ var easypayCommand = &cobra.Command{
 	},
 }
 
+var (
+	includeAudit bool
+	includeKins  bool
+)
+
 func init() {
 	rootCmd.AddCommand(easypayCommand)
 }

@@ -8,11 +8,6 @@ import (
 	"github.com/tomaspavlatka/ptx-go-chef/internal/decorators"
 )
 
-var (
-	includeAudit bool
-	includeKins  bool
-)
-
 var easypayContractViewCmd = &cobra.Command{
 	Use:     "view [contract_id]",
 	Short:   "Views a contract",
@@ -40,14 +35,14 @@ var easypayContractViewCmd = &cobra.Command{
 		}
 
 		if includeKins {
-			kins, err := easypay.GetContractKinsAudit(contractId)
+			kins, err := easypay.GetResourceKinsAudit(contractId)
 			if err != nil {
 				fmt.Println("ERROR:", err)
 				return
 			}
 
       fmt.Println()
-			decorators.ToContractKins(kins.Records)
+			decorators.ToKins(kins.Records)
 		}
 	},
 }

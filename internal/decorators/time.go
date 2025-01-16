@@ -21,6 +21,14 @@ func ToDateWithAgeDetailed(t *time.Time) string {
 	return toDetails(t, "02.01. 15:04:05")
 }
 
+func ToDateWithYearAndAge(t *time.Time) string {
+	if t == nil {
+		return "---"
+	}
+
+	return toDetails(t, "02.01.2006 15:04:05")
+}
+
 func toDetails(t *time.Time, format string) string {
 	now := time.Now()
 	sub := now.Sub(*t)

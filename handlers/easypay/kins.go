@@ -27,8 +27,8 @@ type KinsAudit struct {
 	Metadata Metadata
 }
 
-func GetContractKinsAudit(contractId string) (*KinsAudit, error) {
-	resp, err := easypay.Get("audits/kins?q=eq(resourceId,"+contractId+")sort(createdAt)", 200)
+func GetResourceKinsAudit(resourceId string) (*KinsAudit, error) {
+	resp, err := easypay.Get("audits/kins?q=eq(resourceId,"+resourceId+")sort(createdAt)", 200)
 	if err != nil {
 		return nil, err
 	}
