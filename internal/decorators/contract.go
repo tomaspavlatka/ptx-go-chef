@@ -9,8 +9,9 @@ import (
 )
 
 func ToContract(c easypay.Contract) {
-  fmt.Println(headerStyle.Render("CONTRACT"))
+	fmt.Println(headerStyle.Render("CONTRACT"))
 	fmt.Println(headerStyle.Render("ID:" + c.Id + ", S:" + c.Status + ", V:" + strconv.Itoa(c.Version)))
+	fmt.Println("- Partner      :", c.PartnerId)
 	fmt.Println("- Name         :", c.Name)
 	fmt.Println("- Investment   :", ToMoney(c.Investment))
 	fmt.Println("- Down payment :", ToMoney(c.DownPayment))
@@ -21,6 +22,7 @@ func ToContract(c easypay.Contract) {
 	fmt.Println("- Access token :", c.AccessToken)
 	fmt.Println("- Expires at   :", ToDateWithAge(&c.AccessTokenExpiresAt))
 	fmt.Println("- Reviewed     :", toReviewed(c.ReviewedAt, c.ReviewedBy))
+	fmt.Println("- External Id  :", c.ExternalId)
 	fmt.Println("- Created at   :", ToDateWithAge(c.CreatedAt))
 	fmt.Println("- Updated at   :", ToDateWithAge(c.UpdatedAt))
 }
@@ -42,6 +44,8 @@ func ToContractAudits(audits []easypay.ContractAudit) {
 
 	var (
 		status             string
+		externalId         string
+		partnerId          string
 		interestRate       int
 		investment         int
 		durationMonths     int
@@ -57,16 +61,26 @@ func ToContractAudits(audits []easypay.ContractAudit) {
 	)
 
 	for _, audit := range audits {
-		fmt.Println(headerStyle.Render(translateType(audit.AuditType) + " at " + ToDateWithAgeDetailed(audit.CreatedAt)))
+		fmt.Println(headerStyle.Render(translateType(audit.AuditType) + " at " + ToDateWithAgeDetailed(audit.CreatedAt) + ", V:" + strconv.Itoa(audit.Version)))
 		fmt.Println("- Txid         :", audit.Txid)
 		fmt.Println("- Gate         :", audit.Gate)
 		fmt.Println("- Seat         :", audit.Seat)
 		fmt.Println("- Created by   :", audit.CreatedBy)
 		fmt.Println("-------------- :")
 
+		if newPartnerId, changed := gotChanged(partnerId, &audit.PartnerId); changed {
+			partnerId = newPartnerId
+			fmt.Println("- Partner Id      :", partnerId)
+		}
+
 		if newName, changed := gotChanged(name, &audit.Name); changed {
 			name = newName
 			fmt.Println("- Name         :", name)
+		}
+
+		if newExternalId, changed := gotChanged(externalId, &audit.ExternalId); changed {
+			externalId = newExternalId
+			fmt.Println("- External Id  :", externalId)
 		}
 
 		if newCompanyId, changed := gotChanged(companyId, &audit.CompanyId); changed {
@@ -76,7 +90,7 @@ func ToContractAudits(audits []easypay.ContractAudit) {
 
 		if newApplicantId, changed := gotChanged(applicantId, audit.ApplicantId); changed {
 			applicantId = newApplicantId
-			fmt.Println("- Applicant Id   :", applicantId)
+			fmt.Println("- Applicant Id :", applicantId)
 		}
 
 		if newStatus, changed := gotChanged(status, &audit.Status); changed {
@@ -135,4 +149,3 @@ func ToContractAudits(audits []easypay.ContractAudit) {
 		fmt.Println()
 	}
 }
-

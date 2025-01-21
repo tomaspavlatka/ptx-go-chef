@@ -10,6 +10,8 @@ import (
 
 type Contract struct {
 	Id                   string
+	ExternalId           string
+	PartnerId            string
 	MonthlyInstallment   Money
 	Investment           Money
 	DownPayment          Money
@@ -30,6 +32,8 @@ type Contract struct {
 type ContractAudit struct {
 	Id                   string
 	ContractId           string
+	ExternalId           string
+	PartnerId            string
 	AuditType            string
 	MonthlyInstallment   int
 	CompanyId            string
