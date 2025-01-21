@@ -83,7 +83,7 @@ type ContractsOpts struct {
 }
 
 func GetContractAudits(contractId string) (*ContractsAudit, error) {
-	resp, err := easypay.Get("audits/contracts?q=eq(contractId,"+contractId+")sort(createdAt)", 200)
+	resp, err := easypay.Get("audits/contracts?q=eq(contractId,"+contractId+")sort(createdAt)limit(100,0)", 200)
 	if err != nil {
 		return nil, err
 	}

@@ -77,7 +77,7 @@ func GetApplicant(applicantId string) (*Applicant, error) {
 }
 
 func GetApplicantAudits(applicantId string) (*ApplicantsAudit, error) {
-	resp, err := easypay.Get("audits/applicants?q=eq(applicantId,"+applicantId+")sort(createdAt)", 200)
+	resp, err := easypay.Get("audits/applicants?q=eq(applicantId,"+applicantId+")sort(createdAt)limit(100,0)", 200)
 	if err != nil {
 		return nil, err
 	}

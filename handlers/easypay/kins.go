@@ -28,7 +28,7 @@ type KinsAudit struct {
 }
 
 func GetResourceKinsAudit(resourceId string) (*KinsAudit, error) {
-	resp, err := easypay.Get("audits/kins?q=eq(resourceId,"+resourceId+")sort(createdAt)", 200)
+	resp, err := easypay.Get("audits/kins?q=eq(resourceId,"+resourceId+")sort(createdAt)limit(100,0)", 200)
 	if err != nil {
 		return nil, err
 	}
