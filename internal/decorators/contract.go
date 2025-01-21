@@ -19,10 +19,10 @@ func ToContract(c easypay.Contract) {
 	fmt.Println("- Monthly      :", ToMoney(c.MonthlyInstallment))
 	fmt.Println("- Interest     :", toInterestRate(c.NominalInterestRate))
 	fmt.Println("- Total Credit :", ToMoney(c.TotalCreditAmount))
+	fmt.Println("- External Id  :", c.ExternalId)
 	fmt.Println("- Access token :", c.AccessToken)
 	fmt.Println("- Expires at   :", ToDateWithAge(&c.AccessTokenExpiresAt))
 	fmt.Println("- Reviewed     :", toReviewed(c.ReviewedAt, c.ReviewedBy))
-	fmt.Println("- External Id  :", c.ExternalId)
 	fmt.Println("- Created at   :", ToDateWithAge(c.CreatedAt))
 	fmt.Println("- Updated at   :", ToDateWithAge(c.UpdatedAt))
 }
@@ -70,7 +70,7 @@ func ToContractAudits(audits []easypay.ContractAudit) {
 
 		if newPartnerId, changed := gotChanged(partnerId, &audit.PartnerId); changed {
 			partnerId = newPartnerId
-			fmt.Println("- Partner Id      :", partnerId)
+			fmt.Println("- Partner Id   :", partnerId)
 		}
 
 		if newName, changed := gotChanged(name, &audit.Name); changed {
