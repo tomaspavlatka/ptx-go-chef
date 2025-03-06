@@ -2,28 +2,34 @@ package decorators
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/tomaspavlatka/ptx-go-chef/handlers/easypay"
 )
 
-func ToMoney(m easypay.Money) string {
-  return ToMoneyFromCentAmount(m.CentAmount, m.Currency)
+func ToMoney(m easypay.Money, abs bool) string {
+	return ToMoneyFromCentAmount(m.CentAmount, m.Currency, abs)
 }
 
-func ToMoneyFromCentAmount(centAmount int, currency string) string {
-	money := fmt.Sprintf("%.2f", float64(centAmount)/100.0)
+func ToMoneyFromCentAmount(centAmount int, currency string, abs bool) string {
+	value := float64(centAmount) / 100.0
+	if abs {
+		value = math.Abs(value)
+	}
+
+	money := fmt.Sprintf("%.2f", value)
 
 	parts := strings.Split(money, ".")
 
 	intPart := parts[0]
 	formattedIntPart := addUnderscores(intPart)
 
-  if len(parts) > 1 { 
-    return formattedIntPart + "." + parts[1] + " " + currency
-  }
+	if len(parts) > 1 {
+		return formattedIntPart + "." + parts[1] + " " + currency
+	}
 
-  return formattedIntPart + " " + currency
+	return formattedIntPart + " " + currency
 }
 
 func addUnderscores(s string) string {

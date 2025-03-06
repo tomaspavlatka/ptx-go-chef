@@ -2,10 +2,13 @@ package zoc
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/tomaspavlatka/ptx-go-chef/handlers/easypay"
+	"github.com/tomaspavlatka/ptx-go-chef/internal/decorators"
 	"github.com/tomaspavlatka/ptx-go-chef/internal/savings"
 )
 
@@ -36,6 +39,7 @@ type Metric struct {
 	Bought     float32 `json:"cost_bought_from_grid"`
 	Income     float32 `json:"income_sold_to_grid"`
 	EegCharge  float32 `json:"cost_eeg_charging_fee"`
+	Value      uint    `json:"value"`
 }
 
 type Metrics struct {
@@ -53,7 +57,14 @@ type Simulation struct {
 	Planned Group `json:"planned"`
 }
 
-func GetSavings(raw string) (string, error) {
+type Saving struct {
+	Savings easypay.Money
+	Origin  easypay.Money
+	Planned easypay.Money
+	Value   uint
+}
+
+func GetYearlySavings(raw string) (string, error) {
 	resp, err := getSimulation(raw)
 	if err != nil {
 		return "", err
@@ -64,9 +75,156 @@ func GetSavings(raw string) (string, error) {
 		return "", err
 	}
 
-	fmt.Print(simulation.Origin.Months.Metrics[0])
+	var planned = simulation.Planned.Years.Metrics
+
+	var savings []Saving
+
+	for _, month := range planned {
+		peer, err := getPeer(month, simulation.Origin.Years.Metrics)
+		if err != nil {
+			return "", err
+		}
+
+		var plannedCost = getCost(month)
+		var originCost = getCost(*peer)
+
+		savings = append(savings, Saving{
+			Savings: easypay.Money{
+				CentAmount: int((plannedCost - originCost) * 100),
+				Currency:   "EUR",
+			},
+			Origin: easypay.Money{
+				CentAmount: int(originCost * 100),
+				Currency:   "EUR",
+			},
+			Planned: easypay.Money{
+				CentAmount: int(plannedCost * 100),
+				Currency:   "EUR",
+			},
+			Value: month.Value,
+		})
+	}
+
+	toSaving(savings)
 
 	return "", nil
+}
+
+func GetMonthlySavings(raw string) (string, error) {
+	resp, err := getSimulation(raw)
+	if err != nil {
+		return "", err
+	}
+
+	var simulation Simulation
+	if err := json.Unmarshal(resp, &simulation); err != nil {
+		return "", err
+	}
+
+	var planned = simulation.Planned.Months.Metrics
+
+	var savings []Saving
+
+	for _, month := range planned {
+		peer, err := getPeer(month, simulation.Origin.Months.Metrics)
+		if err != nil {
+			return "", err
+		}
+
+		var plannedCost = getCost(month)
+		var originCost = getCost(*peer)
+
+		savings = append(savings, Saving{
+			Savings: easypay.Money{
+				CentAmount: int((plannedCost - originCost) * 100),
+				Currency:   "EUR",
+			},
+			Origin: easypay.Money{
+				CentAmount: int(originCost * 100),
+				Currency:   "EUR",
+			},
+			Planned: easypay.Money{
+				CentAmount: int(plannedCost * 100),
+				Currency:   "EUR",
+			},
+			Value: month.Value,
+		})
+	}
+
+	toSaving(savings)
+
+	return "", nil
+}
+
+func GetSeasonalSavings(raw string) (string, error) {
+	resp, err := getSimulation(raw)
+	if err != nil {
+		return "", err
+	}
+
+	var simulation Simulation
+	if err := json.Unmarshal(resp, &simulation); err != nil {
+		return "", err
+	}
+
+	var planned = simulation.Planned.Seasons.Metrics
+
+	var savings []Saving
+
+	for _, month := range planned {
+		peer, err := getPeer(month, simulation.Origin.Seasons.Metrics)
+		if err != nil {
+			return "", err
+		}
+
+		var plannedCost = getCost(month)
+		var originCost = getCost(*peer)
+
+		savings = append(savings, Saving{
+			Savings: easypay.Money{
+				CentAmount: int((plannedCost - originCost) * 100),
+				Currency:   "EUR",
+			},
+			Origin: easypay.Money{
+				CentAmount: int(originCost * 100),
+				Currency:   "EUR",
+			},
+			Planned: easypay.Money{
+				CentAmount: int(plannedCost * 100),
+				Currency:   "EUR",
+			},
+			Value: month.Value,
+		})
+	}
+
+	toSaving(savings)
+
+	return "", nil
+}
+
+func toSaving(savings []Saving) {
+	for _, saving := range savings {
+
+		fmt.Println("Month    : ", saving.Value)
+		fmt.Println("Saving   : ", decorators.ToMoney(saving.Savings, true))
+		fmt.Println("Planned  : ", decorators.ToMoney(saving.Planned, true))
+		fmt.Println("Origin   : ", decorators.ToMoney(saving.Origin, true))
+		fmt.Println("========= ")
+	}
+}
+
+func getPeer(metric Metric, metrics []Metric) (*Metric, error) {
+	for _, peer := range metrics {
+		if peer.Value == metric.Value {
+			return &peer, nil
+		}
+	}
+
+	return nil, errors.New("peer not found")
+}
+
+func getCost(metric Metric) float32 {
+	return metric.Investment + metric.Bought + metric.EegCharge - metric.Income;
 }
 
 func getSimulation(raw string) ([]byte, error) {
@@ -139,8 +297,6 @@ func getSimulation(raw string) ([]byte, error) {
 			Investment: float32(data.SubTotal),
 		},
 	}
-
-	fmt.Println(request)
 
 	return savings.Get(request, 200)
 }
