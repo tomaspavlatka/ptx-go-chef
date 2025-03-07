@@ -13,12 +13,12 @@ func ToContract(c easypay.Contract) {
 	fmt.Println(headerStyle.Render("ID:" + c.Id + ", S:" + c.Status + ", V:" + strconv.Itoa(c.Version)))
 	fmt.Println("- Partner      :", c.PartnerId)
 	fmt.Println("- Name         :", c.Name)
-	fmt.Println("- Investment   :", ToMoney(c.Investment))
-	fmt.Println("- Down payment :", ToMoney(c.DownPayment))
+	fmt.Println("- Investment   :", ToMoney(c.Investment, false))
+	fmt.Println("- Down payment :", ToMoney(c.DownPayment, false))
 	fmt.Println("- Duration     :", ToDuration(c.DurationMonths))
-	fmt.Println("- Monthly      :", ToMoney(c.MonthlyInstallment))
+	fmt.Println("- Monthly      :", ToMoney(c.MonthlyInstallment, false))
 	fmt.Println("- Interest     :", toInterestRate(c.NominalInterestRate))
-	fmt.Println("- Total Credit :", ToMoney(c.TotalCreditAmount))
+	fmt.Println("- Total Credit :", ToMoney(c.TotalCreditAmount, false))
 	fmt.Println("- External Id  :", c.ExternalId)
 	fmt.Println("- Access token :", c.AccessToken)
 	fmt.Println("- Expires at   :", ToDateWithAge(&c.AccessTokenExpiresAt))
@@ -105,12 +105,12 @@ func ToContractAudits(audits []easypay.ContractAudit) {
 
 		if newInvestment, changed := gotChanged(investment, &audit.Investment); changed {
 			investment = newInvestment
-			fmt.Println("- Investment   :", ToMoneyFromCentAmount(investment, audit.Currency))
+			fmt.Println("- Investment   :", ToMoneyFromCentAmount(investment, audit.Currency, false))
 		}
 
 		if newDownPayment, changed := gotChanged(downPayment, &audit.DownPayment); changed {
 			downPayment = newDownPayment
-			fmt.Println("- Down payment :", ToMoneyFromCentAmount(downPayment, audit.Currency))
+			fmt.Println("- Down payment :", ToMoneyFromCentAmount(downPayment, audit.Currency, false))
 		}
 
 		if newDurationMonths, changed := gotChanged(durationMonths, &audit.DurationMonths); changed {
@@ -120,7 +120,7 @@ func ToContractAudits(audits []easypay.ContractAudit) {
 
 		if newMonthlyInstallment, changed := gotChanged(monthlyInstallment, &audit.MonthlyInstallment); changed {
 			monthlyInstallment = newMonthlyInstallment
-			fmt.Println("- Monthly      :", ToMoneyFromCentAmount(monthlyInstallment, audit.Currency))
+			fmt.Println("- Monthly      :", ToMoneyFromCentAmount(monthlyInstallment, audit.Currency, false))
 		}
 
 		if newInterestRate, changed := gotChanged(interestRate, audit.InterestRate); changed {

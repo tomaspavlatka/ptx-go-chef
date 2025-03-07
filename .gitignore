@@ -1,2 +1,4 @@
+.DS_Store
 .env
 ptx-go-chef
+data/
