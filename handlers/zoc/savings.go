@@ -2,13 +2,10 @@ package zoc
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
-	"github.com/tomaspavlatka/ptx-go-chef/handlers/easypay"
-	"github.com/tomaspavlatka/ptx-go-chef/internal/decorators"
 	"github.com/tomaspavlatka/ptx-go-chef/internal/savings"
 )
 
@@ -34,12 +31,16 @@ type EnergyData struct {
 	State                                  string  `json:"state"`
 }
 
+type Inputs struct {
+	Data []EnergyData `json:"data"`
+}
+
 type Metric struct {
-	Investment float32 `json:"investment_amount"`
-	Bought     float32 `json:"cost_bought_from_grid"`
-	Income     float32 `json:"income_sold_to_grid"`
-	EegCharge  float32 `json:"cost_eeg_charging_fee"`
-	Value      uint    `json:"value"`
+	Investment float64 `json:"investment_amount"`
+	Bought     float64 `json:"cost_bought_from_grid"`
+	Income     float64 `json:"income_sold_to_grid"`
+	EegCharge  float64 `json:"cost_eeg_charging_fee"`
+	Value      int     `json:"value"`
 }
 
 type Metrics struct {
@@ -58,182 +59,74 @@ type Simulation struct {
 }
 
 type Saving struct {
-	Savings easypay.Money
-	Origin  easypay.Money
-	Planned easypay.Money
-	Value   uint
+	Id         int
+	Value      int
+	Investment float64
+	Savings    float64
 }
 
-func GetYearlySavings(raw string) (string, error) {
-	resp, err := getSimulation(raw)
-	if err != nil {
-		return "", err
-	}
-
-	var simulation Simulation
-	if err := json.Unmarshal(resp, &simulation); err != nil {
-		return "", err
-	}
-
-	var planned = simulation.Planned.Years.Metrics
-
-	var savings []Saving
-
-	for _, month := range planned {
-		peer, err := getPeer(month, simulation.Origin.Years.Metrics)
-		if err != nil {
-			return "", err
-		}
-
-		var plannedCost = getCost(month)
-		var originCost = getCost(*peer)
-
-		savings = append(savings, Saving{
-			Savings: easypay.Money{
-				CentAmount: int((plannedCost - originCost) * 100),
-				Currency:   "EUR",
-			},
-			Origin: easypay.Money{
-				CentAmount: int(originCost * 100),
-				Currency:   "EUR",
-			},
-			Planned: easypay.Money{
-				CentAmount: int(plannedCost * 100),
-				Currency:   "EUR",
-			},
-			Value: month.Value,
-		})
-	}
-
-	toSaving(savings)
-
-	return "", nil
-}
-
-func GetMonthlySavings(raw string) (string, error) {
-	resp, err := getSimulation(raw)
-	if err != nil {
-		return "", err
-	}
-
-	var simulation Simulation
-	if err := json.Unmarshal(resp, &simulation); err != nil {
-		return "", err
-	}
-
-	var planned = simulation.Planned.Months.Metrics
-
-	var savings []Saving
-
-	for _, month := range planned {
-		peer, err := getPeer(month, simulation.Origin.Months.Metrics)
-		if err != nil {
-			return "", err
-		}
-
-		var plannedCost = getCost(month)
-		var originCost = getCost(*peer)
-
-		savings = append(savings, Saving{
-			Savings: easypay.Money{
-				CentAmount: int((plannedCost - originCost) * 100),
-				Currency:   "EUR",
-			},
-			Origin: easypay.Money{
-				CentAmount: int(originCost * 100),
-				Currency:   "EUR",
-			},
-			Planned: easypay.Money{
-				CentAmount: int(plannedCost * 100),
-				Currency:   "EUR",
-			},
-			Value: month.Value,
-		})
-	}
-
-	toSaving(savings)
-
-	return "", nil
-}
-
-func GetSeasonalSavings(raw string) (string, error) {
-	resp, err := getSimulation(raw)
-	if err != nil {
-		return "", err
-	}
-
-	var simulation Simulation
-	if err := json.Unmarshal(resp, &simulation); err != nil {
-		return "", err
-	}
-
-	var planned = simulation.Planned.Seasons.Metrics
-
-	var savings []Saving
-
-	for _, month := range planned {
-		peer, err := getPeer(month, simulation.Origin.Seasons.Metrics)
-		if err != nil {
-			return "", err
-		}
-
-		var plannedCost = getCost(month)
-		var originCost = getCost(*peer)
-
-		savings = append(savings, Saving{
-			Savings: easypay.Money{
-				CentAmount: int((plannedCost - originCost) * 100),
-				Currency:   "EUR",
-			},
-			Origin: easypay.Money{
-				CentAmount: int(originCost * 100),
-				Currency:   "EUR",
-			},
-			Planned: easypay.Money{
-				CentAmount: int(plannedCost * 100),
-				Currency:   "EUR",
-			},
-			Value: month.Value,
-		})
-	}
-
-	toSaving(savings)
-
-	return "", nil
-}
-
-func toSaving(savings []Saving) {
-	for _, saving := range savings {
-
-		fmt.Println("Month    : ", saving.Value)
-		fmt.Println("Saving   : ", decorators.ToMoney(saving.Savings, true))
-		fmt.Println("Planned  : ", decorators.ToMoney(saving.Planned, true))
-		fmt.Println("Origin   : ", decorators.ToMoney(saving.Origin, true))
-		fmt.Println("========= ")
-	}
-}
-
-func getPeer(metric Metric, metrics []Metric) (*Metric, error) {
-	for _, peer := range metrics {
-		if peer.Value == metric.Value {
-			return &peer, nil
-		}
-	}
-
-	return nil, errors.New("peer not found")
-}
-
-func getCost(metric Metric) float32 {
-	return metric.Investment + metric.Bought + metric.EegCharge - metric.Income;
-}
-
-func getSimulation(raw string) ([]byte, error) {
-	var data EnergyData
-	err := json.Unmarshal([]byte(raw), &data)
+func GetSavings(raw string) ([]Saving, error) {
+	inputs, err := getInputs(raw)
 	if err != nil {
 		return nil, err
 	}
 
+	var wg sync.WaitGroup
+	results := make(chan Saving)
+
+	for _, input := range inputs.Data {
+		wg.Add(1)
+		go processInput(input, results, &wg)
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	var savings []Saving
+
+	for result := range results {
+		savings = append(savings, result)
+	}
+
+	return savings, nil
+}
+
+func processInput(input EnergyData, results chan<- Saving, wg *sync.WaitGroup) {
+	defer wg.Done()
+	resp, err := getSimulation(input)
+	if err != nil {
+		return
+	}
+
+	var simulation Simulation
+	if err := json.Unmarshal(resp, &simulation); err != nil {
+		return
+	}
+
+	var planned = simulation.Planned.Seasons.Metrics
+	for _, month := range planned {
+		results <- Saving{
+			Id:         input.ID,
+			Value:      month.Value,
+			Investment: input.SubTotal,
+			Savings:    (month.Income - month.Bought),
+		}
+	}
+}
+
+func getInputs(raw string) (*Inputs, error) {
+	var inputs Inputs
+	err := json.Unmarshal([]byte(raw), &inputs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &inputs, nil
+}
+
+func getSimulation(data EnergyData) ([]byte, error) {
 	roofs := strings.Split(data.Roof, "|")
 	lat, err := strconv.ParseFloat(roofs[0], 32)
 	if err != nil {
@@ -254,12 +147,12 @@ func getSimulation(raw string) ([]byte, error) {
 		Simulation: savings.Simulation{
 			Roofs: []savings.Roof{
 				{
-					Lat:            float32(lat),
-					Lng:            float32(lng),
+					Lat:            lat,
+					Lng:            lng,
 					Tilt:           uint(tilt),
 					Losses:         0,
 					Orientation:    roofs[3],
-					SystemCapacity: uint(data.SystemCapacity),
+					SystemCapacity: data.SystemCapacity,
 				},
 			},
 			Consumers: []savings.Consumer{
@@ -269,32 +162,32 @@ func getSimulation(raw string) ([]byte, error) {
 				},
 			},
 			ConsumptionCorrection: uint(data.FactorOwnConsumptionCorrection),
-			StorageCapacity:       float32(data.StorageCapacity),
-			StorageMaxLoad:        float32(data.StorageMaxLoadPower),
+			StorageCapacity:       data.StorageCapacity,
+			StorageMaxLoad:        data.StorageMaxLoadPower,
 		},
 		Economic: savings.Economic{
 			ElectricityContract: savings.ElectricityContract{
 				FixPrice:        uint(data.ElectricityFixGridPrice),
-				SaleToGridPrice: float32(data.PriceSaleToGrid),
-				EegChargePrice:  float32(data.PriceEEGAppointment),
+				SaleToGridPrice: data.PriceSaleToGrid,
+				EegChargePrice:  data.PriceEEGAppointment,
 				TaxRate:         0,
-				PostEegPayment:  float32(data.PricePostEEGPayment),
+				PostEegPayment:  data.PricePostEEGPayment,
 				KwhPriceRanges: []savings.Price{
 					{
 						Default: true,
 						Amount:  0,
-						Price:   float32(data.ElectricityKwhPrice),
+						Price:   data.ElectricityKwhPrice,
 					},
 				},
 			},
-			StoragePrice: float32(data.PriceRebuyStorageByKwh),
+			StoragePrice: data.PriceRebuyStorageByKwh,
 			Factors: savings.Factors{
-				IncreaseElectricityUsage:  float32(data.FactorIncreaseTotalConsumptionPerAnnum),
-				InflationRate:             float32(data.FactorInflationRate),
-				ElectricityInflationRate:  float32(data.FactorInflationElectricityRate),
-				DegradationModulesPerYear: float32(data.FactorModuleDegradation),
+				IncreaseElectricityUsage:  data.FactorIncreaseTotalConsumptionPerAnnum,
+				InflationRate:             data.FactorInflationRate,
+				ElectricityInflationRate:  data.FactorInflationElectricityRate,
+				DegradationModulesPerYear: data.FactorModuleDegradation,
 			},
-			Investment: float32(data.SubTotal),
+			Investment: data.SubTotal,
 		},
 	}
 

@@ -10,12 +10,12 @@ import (
 )
 
 type Roof struct {
-	Lat            float32 `json:"lat"`
-	Lng            float32 `json:"lon"`
+	Lat            float64 `json:"lat"`
+	Lng            float64 `json:"lon"`
 	Tilt           uint    `json:"tilt"`
 	Losses         uint    `json:"losses"`
 	Orientation    string  `json:"orientation"`
-	SystemCapacity uint    `json:"system_capacity"`
+	SystemCapacity float64 `json:"system_capacity"`
 }
 
 type Consumer struct {
@@ -27,37 +27,37 @@ type Simulation struct {
 	Roofs                 []Roof     `json:"roofs"`
 	Consumers             []Consumer `json:"consumers"`
 	ConsumptionCorrection uint       `json:"factor_own_consumption_correction"`
-	StorageCapacity       float32    `json:"storage_capacity"`
-	StorageMaxLoad        float32    `json:"storage_max_load_power"`
+	StorageCapacity       float64    `json:"storage_capacity"`
+	StorageMaxLoad        float64    `json:"storage_max_load_power"`
 }
 
 type Price struct {
 	Default bool    `json:"default"`
 	Amount  uint    `json:"kwh_amount"`
-	Price   float32 `json:"kwh_price"`
+	Price   float64 `json:"kwh_price"`
 }
 
 type Factors struct {
-	IncreaseElectricityUsage  float32 `json:"increase_electricity_usage"`
-	InflationRate             float32 `json:"inflation_rate"`
-	ElectricityInflationRate  float32 `json:"electricity_inflation_rate"`
-	DegradationModulesPerYear float32 `json:"degradation_modules_per_years"`
+	IncreaseElectricityUsage  float64 `json:"increase_electricity_usage"`
+	InflationRate             float64 `json:"inflation_rate"`
+	ElectricityInflationRate  float64 `json:"electricity_inflation_rate"`
+	DegradationModulesPerYear float64 `json:"degradation_modules_per_years"`
 }
 
 type ElectricityContract struct {
 	FixPrice        uint    `json:"fix_price"`
-	SaleToGridPrice float32 `json:"sale_to_grid_price"`
-	EegChargePrice  float32 `json:"eeg_charge_price"`
-	TaxRate         float32 `json:"tax_rate"`
-	PostEegPayment  float32 `json:"post_eeg_payment"`
+	SaleToGridPrice float64 `json:"sale_to_grid_price"`
+	EegChargePrice  float64 `json:"eeg_charge_price"`
+	TaxRate         float64 `json:"tax_rate"`
+	PostEegPayment  float64 `json:"post_eeg_payment"`
 	KwhPriceRanges  []Price `json:"kwh_price_ranges"`
 }
 
 type Economic struct {
 	ElectricityContract ElectricityContract `json:"current_electricity_contract"`
-	StoragePrice        float32             `json:"storage_kwh_price"`
+	StoragePrice        float64             `json:"storage_kwh_price"`
 	Factors             Factors             `json:"factors"`
-	Investment          float32             `json:"investment_amount"`
+	Investment          float64             `json:"investment_amount"`
 }
 
 type Request struct {
