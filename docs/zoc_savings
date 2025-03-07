@@ -1,0 +1,53 @@
+-- query to pull data for savings input
+select
+    crt.id,
+    prm.electricity_fix_grid_price,
+    prm.price_sale_to_grid,
+    prm.price_eeg_appointment,
+    prm.price_post_eeg_payment,
+    prm.electricity_kwh_price,
+    prm.price_rebuy_storage_by_kwh,
+    prm.factor_increase_total_consumption_per_annum,
+    prm.factor_inflation_rate,
+    prm.factor_inflation_electricity_rate,
+    prm.factor_pv_watts_energy_losses,
+    prm.factor_module_degradation,
+    prm.factor_own_consumption_correction,
+    crt.storage_capacity,
+    (
+        select SUM(JSON_EXTRACT(prd.attributes, '$.storage_batinv_maxpower'))
+        from zoc_cart_item crti
+        join zoc_product prd on crti.product_id = prd.id
+        where
+            cart_id = crt.id
+            and configuration_type = 'storage'
+    ) storage_max_load_power,
+    (
+        select concat(rf.latitude, '|', rf.longitude, '|', rf.tilt, '|', rf.orientation)
+        from zoc_cart_roof crf
+        join zoc_roof rf on  crf.roof_id = rf.id
+        where
+            crf.cart_id = crt.id
+        limit 1
+    ) roof,
+    (
+        select SUM(prd.pmpp / 1000 * quantity)
+        from zoc_cart_item crti
+        join zoc_product prd on crti.product_id = prd.id
+        where
+            cart_id = crt.id
+            and configuration_type = 'module'
+    ) system_capacity,
+    scf.energy_consumption,
+    crt.sub_total,
+    ord.state
+from zoc_order ord
+left join zoc_cart crt on ord.cart_id = crt.id
+left join zoc_system_calculation_parameter prm on ord.system_configuration_id = prm.system_configuration_id
+left join zoc_system_configuration scf on crt.system_configuration_id = scf.id
+where
+    1
+    and ord.state = 'confirmation_sent'
+    and ord.payment_method = 'easy_pay'
+    -- and crt.id = 748720
+order by ord.created_at desc;
