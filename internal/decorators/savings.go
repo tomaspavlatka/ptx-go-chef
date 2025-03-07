@@ -2,14 +2,31 @@ package decorators
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/tomaspavlatka/ptx-go-chef/handlers/zoc"
 )
 
 func ToSavings(savings []zoc.Saving) {
-	fmt.Println("cart_id,value,investment,saving");
+	if len(savings) == 0 {
+		return
+	}
+
+	legend := []string{"id", "investment"}
+	for i := 1; i < len(savings[0].Savings); i++ {
+		legend = append(legend, strconv.Itoa(i))
+	}
+
+	fmt.Println(strings.Join(legend, ","))
 
 	for _, saving := range savings {
-		fmt.Printf("%d,%d,%.2f,%.2f\n", saving.Id, saving.Value, saving.Investment, saving.Savings);
+		row := []string{strconv.Itoa(saving.Id), strconv.FormatFloat(saving.Investment, 'f', 1, 64)}
+
+    for _, p := range saving.Savings {
+      row = append(row, strconv.FormatFloat(p, 'f', 1, 64))
+    }
+
+		fmt.Println(strings.Join(row, ","))
 	}
 }

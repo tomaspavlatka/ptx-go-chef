@@ -2,6 +2,7 @@ package zoc
 
 import (
 	"encoding/json"
+	"errors"
 	"strconv"
 	"strings"
 	"sync"
@@ -60,9 +61,8 @@ type Simulation struct {
 
 type Saving struct {
 	Id         int
-	Value      int
 	Investment float64
-	Savings    float64
+	Savings    []float64
 }
 
 func GetSavings(raw string) ([]Saving, error) {
@@ -105,15 +105,32 @@ func processInput(input EnergyData, results chan<- Saving, wg *sync.WaitGroup) {
 		return
 	}
 
-	var planned = simulation.Planned.Seasons.Metrics
+	var savings []float64
+	var planned = simulation.Planned.Months.Metrics
 	for _, month := range planned {
-		results <- Saving{
-			Id:         input.ID,
-			Value:      month.Value,
-			Investment: input.SubTotal,
-			Savings:    (month.Income - month.Bought),
+		peer, _ := getPeer(month, simulation.Origin.Months.Metrics)
+
+		noPv := peer.Bought - peer.Income     // how much we would pay without PV system
+		withPv := month.Bought - month.Income // how much we would pay with PV system
+
+		savings = append(savings, noPv - withPv)
+	}
+
+	results <- Saving{
+		Id:         input.ID,
+		Investment: input.SubTotal,
+		Savings:    savings,
+	}
+}
+
+func getPeer(metric Metric, peers []Metric) (*Metric, error) {
+	for _, peer := range peers {
+		if peer.Value == metric.Value {
+			return &peer, nil
 		}
 	}
+
+	return nil, errors.New("No peer has been found")
 }
 
 func getInputs(raw string) (*Inputs, error) {
