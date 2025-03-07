@@ -106,9 +106,9 @@ func processInput(input EnergyData, results chan<- Saving, wg *sync.WaitGroup) {
 	}
 
 	var savings []float64
-	var planned = simulation.Planned.Months.Metrics
+	var planned = simulation.Planned.Years.Metrics
 	for _, month := range planned {
-		peer, _ := getPeer(month, simulation.Origin.Months.Metrics)
+		peer, _ := getPeer(month, simulation.Origin.Years.Metrics)
 
 		noPv := peer.Bought - peer.Income     // how much we would pay without PV system
 		withPv := month.Bought - month.Income // how much we would pay with PV system
