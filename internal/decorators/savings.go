@@ -7,7 +7,7 @@ import (
 )
 
 func ToSavings(savings []zoc.Saving) {
-	fmt.Println("id,value,investment,saving");
+	fmt.Println("cart_id,value,investment,saving");
 
 	for _, saving := range savings {
 		fmt.Printf("%d,%d,%.2f,%.2f\n", saving.Id, saving.Value, saving.Investment, saving.Savings);
