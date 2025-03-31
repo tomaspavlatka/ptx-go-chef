@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/gocarina/gocsv"
 	"github.com/tomaspavlatka/ptx-go-chef/internal/lead"
 )
 
@@ -30,22 +31,58 @@ type Payable struct {
 	CreatedAt string  `json:"createdAt"`
 }
 
-func ConvertCompanies(year, month string) ([]Company, error) {
+type Relation struct {
+	CompanyId          string `csv:"company_id"`
+	EasybillCustomerId string `csv:"easybill_customer_id"`
+}
+
+func GetMissingRelations(year, month string) ([]Company, error) {
 	billable, err := retrieveData(year, month)
 	if err != nil {
 		return nil, err
 	}
 
-	companies := make([]Company, 0, len(billable.Orgs))
-	for _, org := range billable.Orgs {
-		company := Company{
-			Id: org.Auth0Id,
-		}
-
-    companies = append(companies, company);
+	relations, err := retrieveRelations()
+	if err != nil {
+		return nil, err
 	}
 
-	return companies, nil
+	data := make(map[string]bool)
+
+	for _, relation := range relations {
+		if len(relation.EasybillCustomerId) > 0 {
+			data[relation.CompanyId] = true
+		}
+	}
+
+	missing := make([]Company, 0, len(billable.Orgs))
+	for _, org := range billable.Orgs {
+
+		_, ok := data[org.Auth0Id]
+		if !ok {
+			missing = append(missing, Company{
+				Id: org.Auth0Id,
+			})
+		}
+	}
+
+	return missing, nil
+}
+
+func retrieveRelations() ([]*Relation, error) {
+	in, err := os.Open("data/relations-tbl.csv")
+	if err != nil {
+		panic(err)
+	}
+	defer in.Close()
+
+	relations := []*Relation{}
+
+	if err := gocsv.UnmarshalFile(in, &relations); err != nil {
+		panic(err)
+	}
+
+	return relations, nil
 }
 
 func retrieveData(year, month string) (*Billable, error) {
