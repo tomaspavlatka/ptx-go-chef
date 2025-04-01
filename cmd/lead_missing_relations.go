@@ -14,8 +14,8 @@ var (
 )
 
 var leadMissingRelationsCmd = &cobra.Command{
-	Use:     "companies [json]",
-	Short:   "Extract companies from JSON",
+	Use:     "relations [json]",
+	Short:   "Find out missing relations",
 	Args:    cobra.MinimumNArgs(0),
 	Aliases: []string{"s"},
 	Run: func(cmd *cobra.Command, args []string) {
